@@ -1,0 +1,80 @@
+from __future__ import annotations
+
+import pytest
+from fastapi.testclient import TestClient
+
+from kinu import api
+
+client = TestClient(api.app)
+
+
+@pytest.fixture(autouse=True)
+def fresh_store(tmp_path, monkeypatch):
+    from kinu.store.local import LocalStore
+
+    monkeypatch.setattr(api, "engine", api.Engine(LocalStore(tmp_path)))
+    yield
+
+
+def test_write_then_query():
+    write = client.post(
+        "/v2/namespaces/docs",
+        json={
+            "upsert_rows": [
+                {"id": 1, "vector": [1.0, 0.0], "text": "storage cost", "page": 1},
+                {"id": 2, "vector": [0.0, 1.0], "text": "pto policy", "page": 2},
+            ],
+            "distance_metric": "cosine_distance",
+        },
+    )
+    assert write.status_code == 200
+    assert write.json()["rows_affected"] == 2
+
+    response = client.post(
+        "/v2/namespaces/docs/query",
+        json={
+            "rank_by": ["vector", "ANN", [1.0, 0.0]],
+            "limit": 1,
+            "include_attributes": ["text", "page"],
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["rows"][0]["id"] == 1
+    assert body["rows"][0]["text"] == "storage cost"
+    assert body["performance"]["bytes_fetched"] > 0
+    assert body["billing"]["billable_logical_bytes_queried"] == body["performance"]["bytes_fetched"]
+
+
+def test_missing_namespace_is_404():
+    response = client.post(
+        "/v2/namespaces/ghost/query", json={"rank_by": ["vector", "ANN", [1.0, 0.0]]}
+    )
+    assert response.status_code == 404
+
+
+def test_metadata_and_delete():
+    client.post(
+        "/v2/namespaces/docs",
+        json={
+            "upsert_rows": [{"id": 1, "vector": [1.0, 0.0]}],
+            "distance_metric": "cosine_distance",
+        },
+    )
+    meta = client.get("/v2/namespaces/docs/metadata").json()
+    assert meta["approx_row_count"] == 1
+
+    assert client.delete("/v2/namespaces/docs").status_code == 200
+    assert client.get("/v2/namespaces").json()["namespaces"] == []
+
+
+def test_bad_rank_by_is_400():
+    client.post(
+        "/v2/namespaces/docs",
+        json={
+            "upsert_rows": [{"id": 1, "vector": [1.0, 0.0]}],
+            "distance_metric": "cosine_distance",
+        },
+    )
+    response = client.post("/v2/namespaces/docs/query", json={"rank_by": ["vector", "BM25", "x"]})
+    assert response.status_code == 400
