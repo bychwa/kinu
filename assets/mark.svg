@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="kinu">
+  <rect width="512" height="512" rx="112" fill="#C2703F"/>
+
+  <g transform="translate(-38.4 -116.6) scale(1.2)">
+    <!-- foot ring -->
+    <ellipse cx="242" cy="430" rx="72" ry="17" fill="#8A4B2A"/>
+
+    <!-- bowl body -->
+    <path d="M94 300C94 392 158 424 242 424c84 0 148-32 148-124z" fill="#6B3F27"/>
+
+    <!-- reflected light on the left of the body -->
+    <path d="M116 324c0 42 24 68 54 82" fill="none" stroke="#A85B32" stroke-width="16" stroke-linecap="round"/>
+
+    <!-- rim -->
+    <ellipse cx="242" cy="300" rx="148" ry="58" fill="#D9A15B"/>
+
+    <!-- interior, with shadow under the lip -->
+    <ellipse cx="242" cy="300" rx="122" ry="44" fill="#8A4B2A"/>
+    <path d="M120 300a122 44 0 0 1 244 0q-122-40-244 0z" fill="#6B3F27"/>
+
+    <!-- ground material: the index, as a constellation -->
+    <g fill="#2FA39A">
+      <circle cx="184" cy="296" r="8"/>
+      <circle cx="210" cy="316" r="11"/>
+      <circle cx="238" cy="292" r="7"/>
+      <circle cx="258" cy="318" r="9"/>
+      <circle cx="308" cy="322" r="8"/>
+      <circle cx="164" cy="326" r="6"/>
+      <circle cx="194" cy="330" r="7"/>
+      <circle cx="226" cy="336" r="6"/>
+    </g>
+
+    <!-- pestle: cast shadow edge, wood, then the shaded flank -->
+    <path d="M283.6 315.7 415.6 205.7" fill="none" stroke="#6B3F27" stroke-width="44" stroke-linecap="round"/>
+    <path d="M276 306 408 196" fill="none" stroke="#D9A15B" stroke-width="44" stroke-linecap="round"/>
+  </g>
+</svg>
