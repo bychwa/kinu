@@ -1,7 +1,7 @@
 [project]
 name = "kinu"
 version = "0.1.0"
-description = "Vector + text search on object storage. Three roundtrips, no server."
+description = "Vector + text search on object storage."
 readme = "README.md"
 authors = [
     { name = "Jackson Isack", email = "jackson.mrema@danads.se" }

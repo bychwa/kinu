@@ -3,7 +3,8 @@
 *kinu* — Swahili for mortar and pestle (KEE-noo). You grind documents down; what's left is searchable.
 
 Vector + text search that lives on object storage. Local disk today, S3 adapter WIP.
-Turbopuffer-shaped API. Stateless query nodes, three roundtrips, no server to babysit.
+Turbopuffer-shaped API. Stateless query nodes, two roundtrips per query, no server
+to babysit.
 
 <img src="assets/logo.svg" alt="kinu" width="420">
 
