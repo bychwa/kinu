@@ -34,8 +34,25 @@ def synth(engine: Engine, namespace: str, n: int) -> None:
     rng = np.random.default_rng(0)
     vectors = rng.standard_normal((n, DIM), dtype=np.float32)
     vectors /= np.linalg.norm(vectors, axis=1, keepdims=True)
-    words = ("storage cost policy tenant index cluster object latency tier grid "
-             "budget headcount remote laptop expense security incident").split()
+    words = [
+        "storage",
+        "cost",
+        "policy",
+        "tenant",
+        "index",
+        "cluster",
+        "object",
+        "latency",
+        "tier",
+        "grid",
+        "budget",
+        "headcount",
+        "remote",
+        "laptop",
+        "expense",
+        "security",
+        "incident",
+    ]
     rows = [
         {
             "id": f"r{i}",
@@ -68,8 +85,10 @@ def bench_real_corpus() -> None:
     print("real corpus (examples/3-docs)")
     print(f"  chunks            {result['performance']['approx_namespace_size']}")
     print(f"  namespace         {total:,} B")
-    print(f"  fetched per query {result['performance']['bytes_fetched']:,} B "
-          f"({result['performance']['bytes_fetched'] / total:.0%})")
+    print(
+        f"  fetched per query {result['performance']['bytes_fetched']:,} B "
+        f"({result['performance']['bytes_fetched'] / total:.0%})"
+    )
     print(f"  requests          {result['performance']['requests']}")
     print(f"  median latency    {statistics.median(timings):.1f} ms")
     print()
