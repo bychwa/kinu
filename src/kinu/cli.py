@@ -138,8 +138,14 @@ def cmd_query(args: argparse.Namespace) -> int:
 
 
 def cmd_serve(args: argparse.Namespace) -> int:
+    import os
+
     import uvicorn
 
+    # api.py resolves its data directory at import time, and the reloader
+    # re-imports it in a child process, so the variable has to be in the
+    # environment rather than passed as an argument.
+    os.environ["KINU_DATA"] = args.data
     print(f"kinu serving {args.data} on http://{args.host}:{args.port}")
     uvicorn.run("kinu.api:app", host=args.host, port=args.port, reload=args.reload)
     return 0

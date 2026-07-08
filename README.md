@@ -31,13 +31,16 @@ No network. No API keys. No config. Three markdown files in `examples/3-docs`.
 Turbopuffer's v2 shape, so a client written against it reads the same here.
 
 ```bash
-uv run kinu serve
+uv run kinu ingest examples/3-docs --data .kinu-demo   # load the sample corpus
+uv run kinu serve --data .kinu-demo                    # http://127.0.0.1:8000
 
-curl -X POST localhost:8000/v2/namespaces/docs/query -d '{
-  "rank_by": ["vector", "ANN", ["Embed", "how much do we spend on storage"]],
-  "limit": 3,
-  "include_attributes": ["text", "doc", "section"]
-}'
+curl -s localhost:8000/v2/namespaces/docs/query \
+  -H 'content-type: application/json' \
+  -d '{
+    "rank_by": ["vector", "ANN", ["Embed", "how much do we spend on storage"]],
+    "limit": 3,
+    "include_attributes": ["text", "doc", "section"]
+  }'
 ```
 
 | method | path |
