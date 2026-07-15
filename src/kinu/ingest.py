@@ -119,7 +119,7 @@ def ingest_path(
     namespace: str,
     path: str | Path,
     *,
-    dim: int = 256,
+    dim: int = 1024,
     chunk_size: int = 500,
     overlap: int = 100,
     batch_rows: int = 512,
