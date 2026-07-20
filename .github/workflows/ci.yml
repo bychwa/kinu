@@ -59,3 +59,33 @@ jobs:
         run: |
           uv run kinu ingest examples/3-docs --data "$RUNNER_TEMP/data"
           uv run kinu query "how many pto days do i get" --data "$RUNNER_TEMP/data" --limit 1
+
+  coverage:
+    name: coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - name: pytest with coverage floor
+        run: |
+          uv run pytest -q \
+            --cov=kinu \
+            --cov-report=term-missing \
+            --cov-fail-under=80 | tee coverage.txt
+      - name: summary
+        if: always()
+        run: |
+          {
+            echo "### coverage"
+            echo '```'
+            cat coverage.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage.txt

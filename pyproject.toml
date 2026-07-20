@@ -24,6 +24,7 @@ kinu = "kinu.cli:main"
 dev = [
     "httpx>=0.28",
     "pytest>=8.3",
+    "pytest-cov>=6.0",
     "ruff>=0.8",
 ]
 
@@ -40,3 +41,16 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "--strict-markers"
+
+[tool.coverage.run]
+source = ["kinu"]
+branch = true
+
+[tool.coverage.report]
+skip_covered = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
