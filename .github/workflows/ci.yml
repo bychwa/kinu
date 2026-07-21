@@ -89,3 +89,24 @@ jobs:
         with:
           name: coverage
           path: coverage.txt
+
+  package:
+    name: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv build
+      - name: built artifacts
+        run: ls -l dist/
+      - name: install the wheel and run the demo
+        run: |
+          uv venv "$RUNNER_TEMP/check"
+          VIRTUAL_ENV="$RUNNER_TEMP/check" uv pip install dist/*.whl
+          "$RUNNER_TEMP/check/bin/kinu" demo | head -20
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
