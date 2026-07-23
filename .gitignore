@@ -23,3 +23,4 @@ build/
 .coverage.*
 htmlcov/
 coverage.txt
+bench.txt

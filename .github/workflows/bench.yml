@@ -1,0 +1,58 @@
+name: bench
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "bench/**"
+      - "examples/**"
+      - ".github/workflows/bench.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: bench-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    name: bench
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+
+      - name: runner
+        run: |
+          {
+            echo "### runner"
+            echo '```'
+            echo "${{ runner.os }} $(uname -m), $(nproc) vCPU"
+            echo "python $(uv run python -V 2>&1)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: run bench
+        run: uv run python bench/bench.py | tee bench.txt
+
+      - name: summary
+        if: always()
+        run: |
+          {
+            echo "### bench"
+            echo '```'
+            cat bench.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench
+          path: bench.txt
