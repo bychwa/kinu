@@ -1,10 +1,18 @@
 # kinu
 
-*kinu* — Swahili for mortar and pestle (KEE-noo). You grind documents down; what's left is searchable.
+*kinu* — Swahili for mortar and pestle (KEE-noo). You grind documents down; what's left is
+searchable.
 
 Vector + text search that lives on object storage. Local disk today, S3 adapter WIP.
 Turbopuffer-shaped API. Stateless query nodes, two roundtrips per query, no server
 to babysit.
+
+[![ci](https://github.com/bychwa/kinu/actions/workflows/ci.yml/badge.svg)](https://github.com/bychwa/kinu/actions/workflows/ci.yml)
+[![bench](https://github.com/bychwa/kinu/actions/workflows/bench.yml/badge.svg)](https://github.com/bychwa/kinu/actions/workflows/bench.yml)
+[![version](https://img.shields.io/badge/version-0.1.0-c2703f)](https://github.com/bychwa/kinu/releases)
+[![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-d9a15b)](pyproject.toml)
+[![coverage](https://img.shields.io/badge/coverage-85%25-2fa39a)](https://github.com/bychwa/kinu/actions/workflows/ci.yml)
+[![license](https://img.shields.io/badge/license-MIT-8a4b2a)](LICENSE)
 
 <img src="assets/logo.svg" alt="kinu" width="420">
 
@@ -84,27 +92,66 @@ instead of a byte count of "whatever we happened to load."
 
 See [DESIGN.md](DESIGN.md) for the query plan and what M2 changes.
 
-## Numbers
+## Performance
 
-`uv run python bench/bench.py`
+Produced by [`bench/bench.py`](bench/bench.py) on every push that touches `src/`,
+`bench/` or `examples/` — the [bench workflow](.github/workflows/bench.yml) runs it,
+writes the output to the run summary and uploads `bench.txt` as an artifact. Nobody
+types these numbers by hand.
+
+Last run: [42679424660](https://github.com/bychwa/kinu/actions/runs/42679424660),
+GitHub-hosted `ubuntu-latest` (x86_64).
 
 | chunks | namespace | fetched per query | median |
 |---|---|---|---|
-| 12 | 57 KB | 57 KB | 1.2 ms |
-| 1,000 | 4.4 MB | 4.1 MB | 2.9 ms |
-| 10,000 | 44 MB | 41 MB | 24 ms |
+| 12 | 0.05 MB | 0.05 MB | 0.7 ms |
+| 1,000 | 4.40 MB | 4.11 MB | 7.6 ms |
+| 10,000 | 43.96 MB | 41.07 MB | 74.1 ms |
 
-These are local-disk numbers, so they measure CPU, not the thing that actually
-hurts in production. On S3 the same queries are still **2 roundtrips**: latency
-is ~2 × RTT plus transfer, and transfer is what grows.
+Reproduce locally with `uv run python bench/bench.py` (a laptop is faster than a
+shared runner; expect these to differ).
+
+These are local-disk reads, so they measure CPU and memcpy, not the thing that
+actually hurts in production. On S3 the same queries are still **2 roundtrips**:
+latency is ~2 × RTT plus transfer, and transfer is what grows.
 
 **M0 reads everything.** That is the baseline, stated plainly. A cluster index
 (M2) turns the last two rows into ~1/8 of those bytes. A search engine that
 cannot tell you what it read cannot be improved.
 
+## Development
+
+```bash
+uv sync
+uv run pytest tests/unit           # 28 tests, pure functions and tmp dirs
+uv run pytest tests/integration    # 26 tests, HTTP, CLI, on-disk roundtrip
+uv run pytest --cov=kinu --cov-fail-under=80
+uv run ruff check src tests bench
+```
+
+What CI actually enforces, on every push and pull request:
+
+| job | what it proves |
+|---|---|
+| `lint` | `ruff check` and `ruff format --check`, so style never lands on `main` |
+| `unit` | the same tests on Python 3.11, 3.12 and 3.13 |
+| `integration` | the HTTP API, the CLI, and ingest → query against files on disk |
+| `coverage` | 85% today, gate at 80%, so a new branch has to bring a test |
+| `package` | `uv build`, install the wheel in a clean venv, run the demo from it |
+| `bench` | the table above, regenerated, never hand-edited |
+| `release` | on a `v0.*` tag only: verify the tag matches the version, publish, cut a release |
+
+## Versioning
+
+**0.1.0.** Pre-1.0 on purpose. The on-disk format changes in M2 (cluster index),
+and a 1.0 would be a promise about stability that this does not honour yet. The
+release workflow asserts the version is still `0.x` and that any tag matches
+`pyproject.toml`, so a 1.0 has to be a deliberate decision rather than a typo.
+
 ## Status
 
 - [x] **M0** — WAL format, byte-range reads, brute-force query, HTTP API, demo
+- [x] **M0.5** — CI/CD: lint, unit + integration matrix, coverage gate, packaging, bench, release
 - [ ] **M1** — CRC verification on read, `kinu fsck`
 - [ ] **M2** — cluster index (`centroids.bin`, nprobe) — cuts bytes ~8x
 - [ ] **M3** — BM25 inverted index, hybrid `Sum` ranking
