@@ -139,7 +139,7 @@ What CI actually enforces, on every push and pull request:
 | `coverage` | 85% today, gate at 80%, so a new branch has to bring a test |
 | `package` | `uv build`, install the wheel in a clean venv, run the demo from it |
 | `bench` | the table above, regenerated, never hand-edited |
-| `release` | on a `v0.*` tag only: verify the tag matches the version, publish, cut a release |
+| `release` | on a `v0.*` tag only: verify the tag matches the version, build, cut a GitHub release. PyPI publishing is opt-in via the `PYPI_PUBLISH` repo variable, because trusted publishing has to be configured on pypi.org first |
 
 ## Versioning
 

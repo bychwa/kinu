@@ -14,13 +14,11 @@ build/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
-
-# os
-.DS_Store
-
-# tooling
 .coverage
 .coverage.*
 htmlcov/
 coverage.txt
 bench.txt
+
+# os
+.DS_Store

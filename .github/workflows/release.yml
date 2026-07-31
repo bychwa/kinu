@@ -13,8 +13,8 @@ jobs:
     name: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
 
@@ -35,7 +35,7 @@ jobs:
       - name: sdist and wheel
         run: ls -l dist/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
@@ -44,7 +44,10 @@ jobs:
     name: publish
     needs: build
     # Only tags, and only 0.x. Pushing to main must never publish anything.
-    if: startsWith(github.ref, 'refs/tags/v0.')
+    # Publishing is opt-in until the PyPI trusted publisher exists: set the
+    # repository variable PYPI_PUBLISH=true once pypi.org knows about this
+    # repo, workflow and environment.
+    if: startsWith(github.ref, 'refs/tags/v0.') && vars.PYPI_PUBLISH == 'true'
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -52,7 +55,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
@@ -69,15 +72,23 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
-      - name: create release
+      - name: create or refresh the release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" dist/* \
-            --title "${GITHUB_REF_NAME}" \
-            --generate-notes \
-            --prerelease
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            # The tag already has a release — it was moved, e.g. a history
+            # rewrite. Keep the written notes, just refresh the artifacts.
+            gh release upload "${GITHUB_REF_NAME}" dist/* --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" dist/* \
+              --title "${GITHUB_REF_NAME}" \
+              --generate-notes \
+              --prerelease
+          fi

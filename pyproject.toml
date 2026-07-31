@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Vector + text search on object storage."
 readme = "README.md"
 authors = [
-    { name = "Jackson Isack", email = "jackson.mrema@danads.se" }
+    { name = "Jackson Isack", email = "1961796+bychwa@users.noreply.github.com" }
 ]
 requires-python = ">=3.11"
 dependencies = [
@@ -16,6 +16,8 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/bychwa/kinu"
+Source = "https://github.com/bychwa/kinu"
+Issues = "https://github.com/bychwa/kinu/issues"
 
 [project.scripts]
 kinu = "kinu.cli:main"
